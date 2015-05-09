@@ -3,8 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/OneDrive/Data%20Semester%206/Kriptografi/Paper%202%20-%20MultiLayer%20Authentication/MultilayerAuthServer/src/Connection/Connection.java</file>
-            <file>file:/E:/OneDrive/Data%20Semester%206/Kriptografi/Paper%202%20-%20MultiLayer%20Authentication/MultilayerAuthServer/src/Algorithm/DiffieHellman.java</file>
+            <file>file:/E:/OneDrive/Data%20Semester%206/Kriptografi/Paper%202%20-%20MultiLayer%20Authentication/MultilayerAuthClient/src/Algorithm/DiffieHellman.java</file>
+            <file>file:/E:/OneDrive/Data%20Semester%206/Kriptografi/Paper%202%20-%20MultiLayer%20Authentication/MultilayerAuthClient/src/Connection/Connection.java</file>
         </group>
     </open-files>
 </project-private>

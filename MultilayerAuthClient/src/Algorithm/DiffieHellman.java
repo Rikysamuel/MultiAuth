@@ -42,20 +42,22 @@ public class DiffieHellman {
     }
     
     public static void randLong(){
+        long x = 0000000000000000L;
+        long y = 9999999999999999L;
         Random rand = new Random(DiffieHellman.seed());
         
-        g = BigInteger.valueOf(rand.nextLong());
+        g = BigInteger.valueOf(rand.nextLong() % (y - x));
         if (g.signum()==-1){
             g = g.negate();
         }
         
-        n = BigInteger.valueOf(rand.nextLong());
+        n = BigInteger.valueOf(rand.nextLong() % (y - x));
         if (n.signum()==-1){
             n = n.negate();
         }
         
         rand = new Random();
-        _x = BigInteger.valueOf(rand.nextLong());
+        _x = BigInteger.valueOf(rand.nextLong() % (y - x));
         if (_x.signum()==-1){
             _x = _x.negate();
         }

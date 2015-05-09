@@ -6,6 +6,7 @@
 
 package Connection;
 
+import Algorithm.AES;
 import Algorithm.DiffieHellman;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -89,8 +90,11 @@ public class Connection {
             String method = (String) jso.get("method");
             switch (method) {
                 case "key":
-                    String key = (String) jso.get("key");
+                    String key = (String) jso.get("value");
                     secretKey = DiffieHellman.findK(key);
+                    break;
+                case "login_resp":
+                    System.out.println(jso.get("value"));
                     break;
                 default:
                     break;
@@ -101,13 +105,25 @@ public class Connection {
     }
     
     public static void main(String[] args) {
-        String ip = "localhost";
-        int port = 1234;
-        
-        DiffieHellman.randLong();
-        
-        if (Connection.connectToServer(ip, port)){
-            Connection.send(Connection.key((DiffieHellman.X).toString()).toString());
+        try {
+            String ip = "localhost";
+            int port = 1234;
+            
+            DiffieHellman.randLong();
+            
+            if (Connection.connectToServer(ip, port)){
+                Connection.send(Connection.key((DiffieHellman.X).toString()).toString());
+            }
+            
+            AES.encryptionKey = secretKey;
+            AES.setPlaintext("mypassword");
+            String pass = AES.convertToString(AES.encrypt());
+            
+            if (Connection.connectToServer(ip, port)){
+                Connection.send(Connection.login("myusername", pass).toString());
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

@@ -6,14 +6,13 @@
 
 package Connection;
 
+import Algorithm.AES;
 import Algorithm.DiffieHellman;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONObject;
@@ -25,21 +24,18 @@ import org.json.simple.parser.ParseException;
  * @author Rikysamuel
  */
 public class Connection {
-    public static String username;
-    public static String password;
+    public static String response;
     
-    public static String key;
+    public static String username;
+    public static String password;    
+    public static String secretKey;
     
     public static JSONObject sendData(String args, String val){
         JSONObject jso = new JSONObject();
-        switch (args){
-            case "key":
-                jso.put("method", "key");
-                jso.put("key", val);
-                return jso;
-            default:
-                return null;
-        }
+        jso.put("method", args);
+        jso.put("value", val);
+        
+        return jso;
     }
     
     public static void parseData(String data){
@@ -68,7 +64,15 @@ public class Connection {
             JSONParser jsp = new JSONParser();
             JSONObject jso = (JSONObject) jsp.parse(data);
             
-            key = (String) jso.get("key");
+            secretKey = (String) jso.get("key");
+            
+            DiffieHellman.randLong();
+            secretKey = DiffieHellman.findK(secretKey);
+            
+            response = String.valueOf(DiffieHellman.X);
+            System.out.println("response: " + Connection.response);
+            
+            response = sendData("key", Connection.response).toString();
         } catch (ParseException ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -82,9 +86,32 @@ public class Connection {
             username = (String) jso.get("username");
             password = (String) jso.get("password");
             
+            String[] cipherText = password.split(",");
+            byte[] cipherBlock = new byte[cipherText.length];
+            for (int i = 0; i < cipherText.length; i++) {
+                cipherBlock[i] = (byte) Integer.parseInt(cipherText[i]);
+            }
+            
+            AES.encryptionKey = secretKey;
+            System.out.println(AES.encryptionKey);
+            password = AES.decrypt(cipherBlock).replace("\0", "");
+            
             System.out.println("user: " + username);
             System.out.println("pass: " + password);
+            
+            if (username.equals("myusername")){
+                if (password.equals("mypassword")){
+                    response = "Login Success!";
+                } else{
+                    response = "Login Failed!";
+                }
+            }
+            System.out.println("response: " + Connection.response);
+            
+            response = sendData("login_resp", Connection.response).toString();
         } catch (ParseException ex) {
+            Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
         
@@ -111,14 +138,7 @@ public class Connection {
                 System.out.println("client_message: " + client_message);
                 
                 parseData(client_message);
-                
-                DiffieHellman.randLong();
-                DiffieHellman.findK(key);
-                
-                String response = String.valueOf(DiffieHellman.X);
-                
-                System.out.println("response: " + response);
-                output.write(sendData("key", response).toString().getBytes());
+                output.write(response.getBytes());
             }
         } 
         catch (IOException ex) 
