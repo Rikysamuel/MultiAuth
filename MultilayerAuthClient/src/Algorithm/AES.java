@@ -37,6 +37,14 @@ public class AES {
         return cipher.doFinal(plainText.getBytes("UTF-8"));
     }
     
+    public static String decrypt(byte[] cipherText) throws Exception{
+        Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding", "SunJCE");
+        SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
+        cipher.init(Cipher.DECRYPT_MODE, key,new IvParameterSpec(IV.getBytes("UTF-8")));
+        
+        return new String(cipher.doFinal(cipherText),"UTF-8");
+    }
+    
     public static String convertToString(byte[] cipher){
         String ciptext = "";
         for (int i = 0; i < cipher.length; i++) {
@@ -45,22 +53,5 @@ public class AES {
         ciptext = ciptext.substring(0,ciptext.length()-1);
         
         return ciptext;
-    }
-  
-    public static void main(String [] args) {
-        try {
-            System.out.println("==Java==");
-            System.out.println("plain:   " + plainText);
-
-            byte[] cipher = encrypt();
-
-            System.out.print("cipher:  ");
-            for (int i=0; i<cipher.length; i++){
-                System.out.print((int) cipher[i]+" ");
-            }
-
-        } catch (Exception e) {
-            System.err.println(e);
-        } 
     }
 }

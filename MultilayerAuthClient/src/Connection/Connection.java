@@ -8,6 +8,8 @@ package Connection;
 
 import Algorithm.AES;
 import Algorithm.DiffieHellman;
+import Algorithm.MAC;
+import Algorithm.RSA;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +17,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -26,6 +29,7 @@ import org.json.simple.parser.ParseException;
 public class Connection {
     public static Socket clientSocket;
     public static String secretKey;
+    public static String testString;
     
     public static boolean connectToServer(String ip, int port){
         try {
@@ -67,11 +71,13 @@ public class Connection {
         return null;
     }
     
-    public static JSONObject login(String username, String password){
+    public static JSONObject login(String username, String password, String testString, String mac){
         JSONObject jso = new JSONObject();
         jso.put("method", "login");
         jso.put("username", username);
         jso.put("password", password);
+        jso.put("string", testString);
+        jso.put("mac", mac);
         return jso;
     }
     
@@ -90,8 +96,18 @@ public class Connection {
             String method = (String) jso.get("method");
             switch (method) {
                 case "key":
-                    String key = (String) jso.get("value");
-                    secretKey = DiffieHellman.findK(key);
+                    JSONArray key = (JSONArray) jso.get("value");
+                    secretKey = DiffieHellman.findK((String) key.get(0));
+                    AES.encryptionKey = secretKey;
+                    
+                    String str = (String) key.get(1);
+                    String[] cipherText = str.split(",");
+                    byte[] cipher = new byte[cipherText.length];
+                    for (int i = 0; i < cipherText.length; i++) {
+                        cipher[i] = (byte) Integer.parseInt(cipherText[i]);
+                    }
+                    
+                    testString = AES.decrypt(cipher).trim();
                     break;
                 case "login_resp":
                     System.out.println(jso.get("value"));
@@ -101,10 +117,19 @@ public class Connection {
             }
         } catch (ParseException ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     public static void main(String[] args) {
+        String username = "myusername";
+        String password = "mypassword";
+        
+        String eServer = "12530547628532101213784755520521260626540817453941412140841363954376475768077782794280758640921115810363180036043030987660805878529823484809629972655195579";
+        String nServer = "10158813192846843016697214635454423681865169060170987547963326733618961092734558942310427192126610702535505923536529253339530994869147535177510744206050792525069634949298566903393028808885935714478669227060871342986316021848392607023671426459160411024989637344989050165716923892159976814353680707455700216526010464515114097605644517842996440956176207929557779292017459610701715608652678468493129599867526265650408024861240941458302387308956914800049896521531609370360498955328262618450964585901952254526678332300082786172601322827107974821125582390035653243468797182521814816817044580657632564424910041912125228342343";
+        
+        
         try {
             String ip = "localhost";
             int port = 1234;
@@ -115,12 +140,12 @@ public class Connection {
                 Connection.send(Connection.key((DiffieHellman.X).toString()).toString());
             }
             
-            AES.encryptionKey = secretKey;
-            AES.setPlaintext("mypassword");
-            String pass = AES.convertToString(AES.encrypt());
+            String encryptedPassword = AES.convertToString(RSA.encrypt(password.getBytes(), eServer, nServer));
             
             if (Connection.connectToServer(ip, port)){
-                Connection.send(Connection.login("myusername", pass).toString());
+                byte[] mac = MAC.generateHMac(secretKey, password);
+                String macString = AES.convertToString(mac);
+                Connection.send(Connection.login(username, encryptedPassword, testString, macString).toString());
             }
         } catch (Exception ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);

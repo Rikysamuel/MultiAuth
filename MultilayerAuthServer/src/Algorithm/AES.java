@@ -17,8 +17,26 @@ import javax.crypto.spec.SecretKeySpec;
 public class AES {
     
     public static String IV = "AAAAAAAAAAAAAAAA";
+    static String plainText;
     public static String encryptionKey;
+    
+    public static void setPlaintext(String _plainText) {
+        StringBuilder concat = new StringBuilder(_plainText);
+        
+        while (concat.length() % 16 != 0) {
+            concat.append("\0");
+        }
+        plainText = concat.toString();
+    }
  
+    public static byte[] encrypt() throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding", "SunJCE");
+        SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, key,new IvParameterSpec(IV.getBytes("UTF-8")));
+        
+        return cipher.doFinal(plainText.getBytes("UTF-8"));
+    }
+    
     public static String decrypt(byte[] cipherText) throws Exception{
         Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding", "SunJCE");
         SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
