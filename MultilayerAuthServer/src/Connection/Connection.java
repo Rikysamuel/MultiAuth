@@ -91,7 +91,7 @@ public class Connection {
     
     public static void loginData(String data) {
         String user = "myusername";
-        String pass = "mypassword";
+        String pass = "34819d7beeabb9260a5c854bc85b3e44"; // hash md5 for "mypassword"
         try {
             JSONParser jsp = new JSONParser();
             JSONObject jso = (JSONObject) jsp.parse(data);
