@@ -135,6 +135,7 @@ public class Connection {
         try {
             String ip = "localhost";
             int port = 1234;
+            long startTime = System.currentTimeMillis();
             
             DiffieHellman.randLong();
             
@@ -149,6 +150,9 @@ public class Connection {
                 String macString = AES.convertToString(mac);
                 Connection.send(Connection.login(username, encryptedPassword, testString, macString).toString());
             }
+            
+            long endTime = System.currentTimeMillis();
+            System.out.println("That took " + (endTime - startTime) + " milliseconds");
         } catch (Exception ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
